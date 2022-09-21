@@ -18,7 +18,7 @@ NN template
   # Add output layer: size corresponds to the number of y components
   `model.add(tf.keras.layers.Dense(target.shape[1], name='Output_layer'))`
 
-  In case of needing more customized NN try to use
+  In case of needing more customized NN try to use (see `APIs.ipynb`)
   `https://www.tensorflow.org/guide/keras/functional`
 
 2. compile the model
