@@ -4,15 +4,15 @@ Pokyny pro vypracovani:
 
 V ramci bakalarske prace provedte nasledujici ukoly:
 
-1) Get acquainted with the state-of-the-art of the inertial confinement research and the importance of the physical phenomena of transport [1, 2, 3].
+1) Get acquainted with the state-of-the-art of the inertial confinement fusion (ICF) research and the importance of the physical phenomena of transport [1, 2, 3].
 
-2) Seznamte se s modernimi modely pro simulovani fuznich experimentu, predevsim s modely elektronoveho transportu [4].
+2) Research hydrodynamic models used in ICF with focus on nonlocal electron transport [4]. 
 
-3) Zpracujte data ziskana z kinetickych modelu Lawrence Livermore National Laboratory.
+3) Process kinetic modeling data provided by Lawrence Livermore National Laboratory.
 
-4) Naucte neuronovou sit proces nelokalniho transportu na zaklade spravne definovane objektivni funkce [5, 6, 7].
+4) Teach a deep neural network (DNN) to learn the process of nonlocal electron transport based on physically motivated loss function [5, 6, 7].
 
-5) Porovnejte model neuronove site s klasickym modelem limiteru tepelne vodivosti [8].
+5) Compare the DNN model with the classical heat flux limiter model used in ICF [8].
 
 [1] H. Abu-Shawareb et al. (Indirect Drive ICF Collaboration), "Lawson Criterion for Ignition Exceeded in an Inertial Fusion Experiment", Physical Review Letters 129, 075001 (2022).
 
