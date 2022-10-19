@@ -11,38 +11,28 @@
 6. We will collaborate via github (PRs = "Pull Requests")
 
 ## Physics
-<ol>
-  <li>Start with "Radiation Hydrodynamics" by Castor</li>
-  <li>Our model of reference deterministic kinetics via Vlasov-Fokker-Planck (Landau)</li>
-  <li>We want the project's plasma physics be as close as possible to FPTF curriculum</li>
-  <li>Plasma physics in BP should cover: radiation hydrodynamics for ICF, nonlocal transport hydrodynamics, VFP and Krook kinetics</li>
-</ol>
+1. Start with **Radiation Hydrodynamics** by Castor
+2. Our model of reference deterministic kinetics via **Vlasov-Fokker-Planck (Landau)**
+3. We want the project's plasma physics be as close as possible to FPTF curriculum
+4. Plasma physics in BP should cover: *radiation hydrodynamics for ICF*, *nonlocal transport hydrodynamics*, *VFP and Krook kinetics*
 
 ## Programming
 
 ### Linux
-<ol>
-  <li>Make yourself comfortable with using the computer via command line (tcsh)</li>
-  <li>Learn basic shell commands</li>
-  <li>SSH or VNC on Ondra Klimo's cluster?</li>
-</ol>
+1. Make yourself comfortable with using the computer via command line (tcsh)
+2. Learn basic shell commands
+3. SSH or VNC on Ondra Klimo's cluster?
 
 ### git
-<ol>
-  <li>MH will prepare a github repository and a dedicated **PR for bogdaale** to do science</li>
-  <li>Get familiar with the git commands: `git clone`, `git pull`, `git add`, `git commit -m`, `git push`</li>
-  <li>It will be a "steep learning curve" (misnomer), but **IT IS WORTH IT**</li>
-</ol>
+1. MH will prepare a github repository and a dedicated **PR for bogdaale** to do science
+2. Get familiar with the git commands: `git clone`, `git pull`, `git add`, `git commit -m`, `git push`
+3. It will be a "steep learning curve" (misnomer), but **IT IS WORTH IT**</li>
 
 ### Python3
-<ol>
-  <li>numpy</li>
-  <li>pandas</li>
-  <li>scipy</li>
-</ol>
+1. numpy
+2. pandas
+3. scipy
 
 ### PyTorch
-<ol>
-  <li>Jupyter</li>
-  <li>Regression example</li>
-</ol>
+1. Jupyter
+2. Regression example
