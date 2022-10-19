@@ -3,14 +3,12 @@
 # `bogdaale` Project plan
 
 ## Meetings
-<ol>
-  <li>Prompt communication is the MOST important skill</li>
-  <li> **Bi-weekly updates** </li>
-  <li>Progress tracking via slides (powerpoint?)</li>
-  <li>"No progress is a valid update"</li>
-  <li>**Always** keep track of your references!</li>
-  <li>We will collaborate via github (PRs = "Pull Requests")</li>
-</ol>
+1. Prompt communication is the MOST important skill
+2. **Bi-weekly updates**
+3. Progress tracking via slides (powerpoint?)
+4. "No progress" is a valid update
+5. **Always** keep track of your references!
+6. We will collaborate via github (PRs = "Pull Requests")
 
 ## Physics
 <ol>
