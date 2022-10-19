@@ -5,7 +5,7 @@
 ## Meetings
 <ol>
   <li>Prompt communication is the MOST important skill</li>
-  <li>**Bi-weekly updates**</li>
+  <li> **Bi-weekly updates** </li>
   <li>Progress tracking via slides (powerpoint?)</li>
   <li>"No progress is a valid update"</li>
   <li>**Always** keep track of your references!</li>
