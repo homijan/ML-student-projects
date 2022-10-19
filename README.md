@@ -24,9 +24,10 @@
 3. SSH or VNC on Ondra Klimo's cluster?
 
 ### git
-1. MH will prepare a github repository and a dedicated **PR for bogdaale** to do science
-2. Get familiar with the git commands: `git clone`, `git pull`, `git add`, `git commit -m`, `git push`
-3. It will be a "steep learning curve" (misnomer), but **IT IS WORTH IT**</li>
+1. `bogdaale` will create his github account (github.com)
+2. MH will prepare a github repository and a dedicated **PR for `bogdaale`** to do science
+3. Get familiar with the git commands: `git clone`, `git pull`, `git add`, `git commit -m`, `git push`
+4. It will be a "steep learning curve" (misnomer), but **IT IS WORTH IT**</li>
 
 ### Python3
 1. numpy
