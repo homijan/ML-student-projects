@@ -25,7 +25,7 @@
 
 ### git
 1. `bogdaale` will create his github account (github.com)
-2. MH will prepare a github repository and a dedicated **PR for `bogdaale`** to do science
+2. MH will prepare a github repository and a dedicated **PR for `bogdaale`** to do science &#x2611;
 3. Get familiar with the git commands: `git clone`, `git pull`, `git add`, `git commit -m`, `git push`
 4. It will be a "steep learning curve" (misnomer), but **IT IS WORTH IT**</li>
 
@@ -37,3 +37,5 @@
 ### PyTorch
 1. Jupyter
 2. Regression example
+
+# SERIOUS NUMERICS FOR SERIOUS PHYSICS!
