@@ -3,6 +3,7 @@
 2. add a figure plotting the Knudsen number `Kn` from `Q_gdhohlraum_cm_10ps_c7b-bgk-Wcm2-clogCHIC.txt`
 3. evaluate the heat flux constant `k` from the formula `q = - k / Z (Z + 0.24) / (Z + 4.2) T^(2.5) dTdx` by matching the `Qloc` profile.
 4. evaluate "nonlocal" fitting constants `alphaC` and `alphaN` from the formula `q = - alphaC / Z (Z + 0.24) / (Z + 4.2) T^alphaN dTdx` by matching `Qimpact` profile.
+5. evaluate "nonlocal" fitting constants `alphaC` and `alphaN` above subintervals `(x0, x0+deltax), (x0+deltax, x0+2*deltax), .., (x0+(N-1)*deltax, x1)`, where `x0`, `x1`, and `deltax` are `min(x)`, `max(x)`, and `(max(x)-min(x))/N` from the task 4. Use N = 1, 2, 3, 4. Finally, find a x-dependent fit of `alphaC(x)` and `alphaN(x)` and plot `q = - alphaC(x) / Z (Z + 0.24) / (Z + 4.2) T^alphaN(x) dTdx` for all given values of `N`.
 
 # Zadani prace pro Alexe
 
