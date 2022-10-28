@@ -2,6 +2,7 @@
 1. try plotting the profiles of temperature `Te`, electron density `ne`, and ionization `Z` in `./gd-profiles` by calling `python3 plot-gd-profiles.py`
 2. add a figure plotting the Knudsen number `Kn` from `Q_gdhohlraum_cm_10ps_c7b-bgk-Wcm2-clogCHIC.txt`
 3. evaluate the heat flux constant `k` from the formula `q = - k / Z (Z + 0.24) / (Z + 4.2) T^(2.5) dTdx` by matching the `Qloc` profile.
+4. evaluate "nonlocal" fitting constants `alphaC` and `alphaN` from the formula `q = - alphaC / Z (Z + 0.24) / (Z + 4.2) T^alphaN dTdx` by matching `Qimpact` profile.
 
 # Zadani prace pro Alexe
 
