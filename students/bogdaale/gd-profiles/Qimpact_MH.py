@@ -34,15 +34,19 @@ def getsub(f, x, xref):
 
 # Use alphaN
 useAlphaN = True
+useAlphaX = True
 
 # Transform data to match given spatial interval 
 # Default values spanning the whole c7b spatial domain
 xmin = -1.0; xmax = 1.0
 if (len(sys.argv) > 1):
   if (sys.argv[1] == 'alphaN'):
-    useAlphaN = True
+    useAlphaN = True; useAlphaX = False
   else:
-    useAlphaN = False
+    if (sys.argv[1] == 'alphaX'):
+      useAlphaX = True; useAlphaN = False
+    else:
+      useAlphaX = False; useAlphaN = False
 if (len(sys.argv) > 2):
   xmin = float(sys.argv[2])
 if (len(sys.argv) > 3):
@@ -78,11 +82,14 @@ print(f'Constant from Qloc profile k = {par3[0]:.1e} ± {standev3[0]:.1e}')
 #!!! 4-th task
 def fitQimpact(X, alphaC, alphaN):
     #fit function for Qloc profile
-    Z, T, gradT = X
+    x, Z, T, gradT = X
     if (useAlphaN):
       q = -(alphaC*kQSH/Z)*((Z+0.24)/(Z+4.2))*T**(2.5*1.0/(1.0+np.exp(alphaN)))*gradT
     else:
-      q = -(alphaC*kQSH/Z)*((Z+0.24)/(Z+4.2))*T**2.5*gradT
+      if (useAlphaX):
+        q = -((alphaC + alphaN*x)*kQSH/Z)*((Z+0.24)/(Z+4.2))*T**2.5*gradT
+      else:
+        q = -(alphaC*kQSH/Z)*((Z+0.24)/(Z+4.2))*T**2.5*gradT
     return q
 
 #!!! 5-th task
@@ -104,7 +111,7 @@ for N in range(1, Nmax):
     split_x = np.array_split(xref, N)             #split the x axes to know at which subinterval we currently are
     subfits = np.array([[],[]])                   #contain fit data for each subinterval
     for sub, _ in enumerate(split_x):             #fitting for each subinterval of xref
-        pars, covs = curve_fit(fitQimpact, (split_Z[sub], split_T[sub], split_gradT[sub]), \
+        pars, covs = curve_fit(fitQimpact, (split_x[sub], split_Z[sub], split_T[sub], split_gradT[sub]), \
                                split_Qimpact[sub],  maxfev = 100000)
         standevs = np.sqrt(np.diag(covs))
         nln = 2.5*1.0/(1.0+np.exp(pars[1]))
@@ -113,7 +120,7 @@ for N in range(1, Nmax):
               f'alpha_N = {pars[1]:.2e} ± {standevs[1]:.2e} ({nln:.2e})','\n')
         allpars[N-1, sub] = pars
         alldevs[N-1, sub] = standevs
-        qsub = fitQimpact((split_Z[sub], split_T[sub], split_gradT[sub]),*pars)
+        qsub = fitQimpact((split_x[sub], split_Z[sub], split_T[sub], split_gradT[sub]),*pars)
         subfits = np.concatenate((subfits, np.array([split_x[sub], \
                                   qsub])), axis = 1)
         point = int(0.5*len(split_x[sub]))
