@@ -4,6 +4,7 @@
 3. evaluate the heat flux constant `k` from the formula `q = - k / Z (Z + 0.24) / (Z + 4.2) T^(2.5) dTdx` by matching the `Qloc` profile.
 4. evaluate "nonlocal" fitting constants `alphaC` and `alphaN` from the formula `q = - alphaC / Z (Z + 0.24) / (Z + 4.2) T^alphaN dTdx` by matching `Qimpact` profile.
 5. evaluate "nonlocal" fitting constants `alphaC` and `alphaN` above subintervals `(x0, x0+deltax), (x0+deltax, x0+2*deltax), .., (x0+(N-1)*deltax, x1)`, where `x0`, `x1`, and `deltax` are `min(x)`, `max(x)`, and `(max(x)-min(x))/N` from the task 4. Use N = 1, 2, 3, 4. Finally, find a x-dependent fit of `alphaC(x)` and `alphaN(x)` and plot `q = - alphaC(x) / Z (Z + 0.24) / (Z + 4.2) T^alphaN(x) dTdx` for all given values of `N`.
+6. Generalize the concept of subintervals to a concept of a *sliding* interval `(xc - deltax/2, xc + deltax/2)` centered around point `xc` of size `deltax` (for example 50 microns). Prepare a function `getAlphas(xi, Zi, Ti, Qi)` returning the value of `alphaC(xc)` and `alphaN(xc)` where `xi, Zi, Ti, Qi` are discrete values restricted to the `deltax`-inerval around `xc`. **Finally, plot `alphaC(x)` and `alphaN(x)` for different fit functions in as defined in `Qimpact_MH.py`**
 
 # Zadani prace pro Alexe
 
