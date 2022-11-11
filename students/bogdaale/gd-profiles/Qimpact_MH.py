@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import pandas as pd
 from scipy.interpolate import CubicSpline
+import math
 import sys
 
 #!!!
@@ -38,34 +39,36 @@ useX = False
 useN = False
 useXN = False
 useX2 = False
-
+useXN1 = False
 
 # Transform data to match given spatial interval 
 # Default values spanning the whole c7b spatial domain
 xmin = -1.0; xmax = 1.0
 if (len(sys.argv) > 1):
   if (sys.argv[1] == 'alphaC'):
-    useC = True; useX = False; useN = False; useXN = False; useX2 = False
+    useC = True; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = False
   else:
     if (sys.argv[1] == 'alphaX'):
-      useC = False; useX = True; useN = False; useXN = False; useX2 = False
+      useC = False; useX = True; useN = False; useXN = False; useX2 = False; useXN1 = False
     else:
       if (sys.argv[1] == 'alphaN'):
-        useC = False; useX = False; useN = True; useXN = False; useX2 = False
+        useC = False; useX = False; useN = True; useXN = False; useX2 = False; useXN1 = False
       else:
         if (sys.argv[1] == 'alphaXN'):
-          useC = False; useX = False; useN = False; useXN = True; useX2 = False
+          useC = False; useX = False; useN = False; useXN = True; useX2 = False; useXN1 = False
         else:
           if (sys.argv[1] == 'alphaX2'):
-            useC = False; useX = False; useN = False; useXN = False; useX2 = True
+            useC = False; useX = False; useN = False; useXN = False; useX2 = True; useXN1 = False
           else:
-            print(f'Unknown option {sys.argv[1]}'); quit();
+            if (sys.argv[1] == 'alphaXN1'):
+              useC = False; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = True
+            else:
+              print(f'Unknown option {sys.argv[1]}'); quit();
 
 if (len(sys.argv) > 2):
   xmin = float(sys.argv[2])
 if (len(sys.argv) > 3):
   xmax = float(sys.argv[3])
-#xmin = 0.15; xmax = 0.188
 
 xref = x_Te[np.logical_and(x_Te > xmin, x_Te < xmax)]
 Te = getsub(Te, x_Te, xref)
@@ -92,9 +95,8 @@ standev3=np.sqrt(np.diag(cov3))
 kQSH = par3[0]
 print(f'Constant from Qloc profile k = {par3[0]:.1e} ± {standev3[0]:.1e}')
 
-
 #!!! 4-th task
-def fitQimpact(X, alpha0, alpha1, alpha2):
+def fitQimpact(X, alpha0, alpha1, alpha2, alpha3, alpha4):
     #fit function for Qloc profile
     x, Z, T, gradT = X
     if (useC):
@@ -106,53 +108,52 @@ def fitQimpact(X, alpha0, alpha1, alpha2):
       else:
         if (useN):
           q = ( -(alpha0 * kQSH / Z) * ((Z + 0.24) / (Z + 4.2)) *
-            T**(2.5 * 1.0 / (1.0 + np.exp(alpha2))) * gradT )
+            T**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradT )
         else: 
           if (useXN):
             q = ( -((alpha0 + alpha1 * x) * kQSH / Z) * ((Z + 0.24) / (Z + 4.2))
-              * T**(2.5 * 1.0 / (1.0 + np.exp(alpha2))) * gradT )
-          else: #useX2
-            q = ( -((alpha0 + alpha1 * x + alpha2 * x * x) * kQSH / Z) * 
-              ((Z + 0.24) / (Z + 4.2)) * T**2.5 * gradT )
+              * T**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradT )
+          else: 
+            if (useX2):
+              q = ( -((alpha0 + alpha1 * x + alpha2 * x * x) * kQSH / Z) * 
+                ((Z + 0.24) / (Z + 4.2)) * T**2.5 * gradT )
+            else:
+              if (useXN1):
+                q = ( -((alpha0 + alpha1 * x) * kQSH / Z) * 
+                  ((Z + 0.24) / (Z + 4.2)) * T**(2.5 * 
+                  1.0 / (1.0 + np.exp(alpha3 + alpha4 * x))) * gradT )
+              else:
+                print("Unknown loss function")
     return q
 
 #!!! 5-th task
-Nmax = 3
+N = 3
 if (len(sys.argv) > 4):
-  Nmax = int(sys.argv[4]) + 1
-print('\n evaluate "nonlocal" fitting constants above subintervals \n')
-allfits = np.empty([Nmax, 2, xref.shape[0]]) #will contain all fits for all N in [1,5]
-allpars=np.zeros((Nmax, Nmax, 3))               #will contain all parameters and position
-alldevs=np.zeros((Nmax, Nmax, 3))
-allxsqs=np.zeros((Nmax, Nmax, 2))
-for N in range(1, Nmax):
-  print("     For N = ", N, '\n')
-  #split the data we use in fit
-  split_Z = np.array_split(Zbar, N)
-  split_T = np.array_split(Te, N)
-  split_gradT = np.array_split(gradTe, N)
-  split_Qimpact = np.array_split(Qimpact, N)    #split the data we want to fit
-  split_x = np.array_split(xref, N)             #split the x axes to know at which subinterval we currently are
-  subfits = np.array([[],[]])                   #contain fit data for each subinterval
-  for sub, _ in enumerate(split_x):             #fitting for each subinterval of xref
-    pars, covs = curve_fit(fitQimpact, (split_x[sub], split_Z[sub],\
-                           split_T[sub], split_gradT[sub]), \
-                           split_Qimpact[sub],  maxfev = 100000)
-    standevs = np.sqrt(np.diag(covs))
-    nln = 2.5*1.0/(1.0+np.exp(pars[1]))
-    print(f'Pars in subinterval x in <{split_x[sub][0]:.3e} ; {split_x[sub][-1]:.3e}>:','\n',\
-          f'alpha_C = {pars[0]:.2e} ± {standevs[0]:.2e}','\n',\
-          f'alpha_N = {pars[1]:.2e} ± {standevs[1]:.2e} ({nln:.2e})','\n')
-    allpars[N-1, sub] = pars
-    alldevs[N-1, sub] = standevs
-    qsub = fitQimpact((split_x[sub], split_Z[sub], split_T[sub],\
-                       split_gradT[sub]), *pars)
-    subfits = np.concatenate((subfits, np.array([split_x[sub],\
-                              qsub])), axis = 1)
-    point = int(0.5*len(split_x[sub]))
-    allxsqs[N-1, sub] = [split_x[sub][point], qsub[point]]
-  allfits[N-1] = subfits
+  N = int(sys.argv[4])
 
+print("     For N = ", N, '\n')
+# split the data we use in fit
+split_Z = np.array_split(Zbar, N)
+split_T = np.array_split(Te, N)
+split_gradT = np.array_split(gradTe, N)
+split_Qimpact = np.array_split(Qimpact, N)    #split the data we want to fit
+split_x = np.array_split(xref, N)             #split the x axes to know at which subinterval we currently are
+subfits = np.array([[],[]])                   #contain fit data for each subinterval
+for sub, _ in enumerate(split_x):             #fitting for each subinterval of xref
+  pars, covs = curve_fit(fitQimpact, (split_x[sub], split_Z[sub],\
+                         split_T[sub], split_gradT[sub]), \
+                         split_Qimpact[sub],  maxfev = 100000)
+  standevs = np.sqrt(np.diag(covs))
+  print(f'Pars in subinterval x in <{split_x[sub][0]:.3e} ; {split_x[sub][-1]:.3e}>:','\n',\
+        f'alpha0 = {pars[0]:.2e} ± {standevs[0]:.2e}','\n',\
+        f'alpha1 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n',\
+        f'alpha2 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n',\
+        f'alpha3 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n',\
+        f'alpha4 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n')
+  qsub = fitQimpact((split_x[sub], split_Z[sub], split_T[sub],\
+                     split_gradT[sub]), *pars)
+  subfits = np.concatenate((subfits, np.array([split_x[sub],\
+                            qsub])), axis = 1)
     
 #plot stuff
 fontsize = 15.5
@@ -195,38 +196,36 @@ axs4.set_title('Q')
 #axs4.autoscale(enable=True, axis='x', tight=True)
 axs4.legend(loc='upper left')
 
-
 fig5, axs5 = plt.subplots(1, 1, figsize=(8, 8))
 axs5.plot(xref, Knx)
 axs5.set_xlabel('cm')
 axs5.set_ylabel('[-]')
 axs5.set_title(label=r"Knudsen number $Kn_{\mathrm{x}}$")
 
-Ngraphs = 1
 fig6, axs6 = plt.subplots(1, 1, figsize=(8, 8))
-for i in range(Ngraphs):
-    idata = (i+1)*int(Nmax/Ngraphs)-2
-    print(f'idata {idata}')
-    axs6.plot(allfits[idata,0,:],allfits[idata,1,:], '--', label = f'N={idata+1} fit')
-    axs6.plot(xref, Qloc, 'k-.', label = f'Spitzer-Harm')
-    axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=2.0)
-    axs6.set_xlabel('cm')
-    axs6.set_ylabel('W/cm$^2$')
-    axs6.legend()
-    if (useC):
-      axs6.set_title(r'Q = $- f(c) \kappa T^{2.5} \nabla T$')
+axs6.plot(subfits[0,:],subfits[1,:], '--', label = f'N={N} fit')
+axs6.plot(xref, Qloc/1e1, 'k-.', label = r'Spitzer-Harm $\times$ 0.1')
+axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=2.0)
+axs6.set_xlabel('cm')
+axs6.set_ylabel('W/cm$^2$')
+axs6.legend()
+if (useC):
+  axs6.set_title(r'Q = $- f(c) \kappa T^{2.5} \nabla T$')
+else:
+  if (useX):
+    axs6.set_title(r'Q = $- f(c+ax) \kappa T^{2.5} \nabla T$')
+  else:
+    if (useN):
+      axs6.set_title(r'Q = $- f(c) \kappa T^{\alpha(c)} \nabla T$')
     else:
-      if (useX):
-        axs6.set_title(r'Q = $- f(c+ax) \kappa T^{2.5} \nabla T$')
+      if (useXN):
+        axs6.set_title(r'Q = $- f(c+ax) \kappa T^{\alpha(c)} \nabla T$')
       else:
-        if (useN):
-          axs6.set_title(r'Q = $- f(c) \kappa T^{\alpha(c)} \nabla T$')
+        if (useX2):
+          axs6.set_title(r'Q = $- f(c+ax+bx^2) \kappa T^{2.5} \nabla T$')
         else:
-          if (useXN):
-            axs6.set_title(r'Q = $- f(c+ax) \kappa T^{\alpha(c)} \nabla T$')
+          if (useXN1):
+            axs6.set_title(r'Q = $- f(c+ax) \kappa T^{\alpha(c+ax)} \nabla T$')
           else:
-            if (useX2):
-              axs6.set_title(r'Q = $- f(c+ax+bx^2) \kappa T^{2.5} \nabla T$')
-            else:
-              print("Unknown title option."); quit()
+            print("Unknown title option."); quit()
 plt.show()
