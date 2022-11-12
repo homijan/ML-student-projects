@@ -33,6 +33,19 @@ def getsub(f, x, xref):
   f_cs = CubicSpline(x, f)
   return f_cs(xref)
 
+def Qstream(ne, Te):
+  me = 9.1094e-28 # [g]
+  eV2K = 1.1604e4 # K = eV2K * eV
+  erg2J = 1e-7
+  kB = 1.3807e-16 * eV2K # [erg/eV]
+  # Local thermal energy density
+  eTh = ne * kB * Te
+  # Thermal velocity
+  vTh = (kB * Te / me)**0.5
+  # Free-streaming heat flux [cm/s*erg/cm3]
+  Qfs = vTh * eTh
+  return erg2J * Qfs
+
 # Use alphaN
 useC = True
 useX = False
@@ -69,6 +82,9 @@ if (len(sys.argv) > 2):
   xmin = float(sys.argv[2])
 if (len(sys.argv) > 3):
   xmax = float(sys.argv[3])
+flim = 0.1
+if (len(sys.argv) > 5):
+  flim = float(sys.argv[5])
 
 xref = x_Te[np.logical_and(x_Te > xmin, x_Te < xmax)]
 Te = getsub(Te, x_Te, xref)
@@ -83,6 +99,9 @@ Qc7bAWBS = getsub(Qc7bAWBS, x_Qc7bAWBS, xref)
 
 #calculating Te gradient
 gradTe=np.gradient(Te, xref)
+
+# Evaluate free-streaming heat flux
+Qfs = Qstream(ne, Te)
 
 #!!! 3-th task
 def fitQloc(X, k):
@@ -154,6 +173,21 @@ for sub, _ in enumerate(split_x):             #fitting for each subinterval of x
                      split_gradT[sub]), *pars)
   subfits = np.concatenate((subfits, np.array([split_x[sub],\
                             qsub])), axis = 1)
+
+#!!! 9-th task
+# Evaluate effective heat flux (harmonic mean of Qloc and Qfs) 
+def fitQeff(X, flim, scale):
+    #fit function for Qloc profile
+    ne, Z, Te, gradTe = X
+    Qloc = -(kQSH/Z)*((Z+0.24)/(Z+4.2))*Te**2.5*gradTe
+    Qfs = Qstream(ne, Te)
+    Qeff = scale * Qfs * (1.0 - np.exp(-Qloc/(flim*Qfs)))
+    return Qeff
+par3, cov3 = curve_fit(fitQeff, (ne, Zbar, Te, gradTe), Qimpact,  maxfev = 1000)
+standev3=np.sqrt(np.diag(cov3))
+flim = par3[0]; scale = par3[1]
+print(f'Flux limiter from Qeff profile flim = {flim:.1e} ± {standev3[0]:.1e}')
+print(f'scale {scale}')
     
 #plot stuff
 fontsize = 15.5
@@ -202,10 +236,13 @@ axs5.set_xlabel('cm')
 axs5.set_ylabel('[-]')
 axs5.set_title(label=r"Knudsen number $Kn_{\mathrm{x}}$")
 
+strflim = f'{flim:.1e}'
 fig6, axs6 = plt.subplots(1, 1, figsize=(8, 8))
-axs6.plot(subfits[0,:],subfits[1,:], '--', label = f'N={N} fit')
-axs6.plot(xref, Qloc/1e1, 'k-.', label = r'Spitzer-Harm $\times$ 0.1')
+#axs6.plot(subfits[0,:],subfits[1,:], '--', label=f'N={N} fit')
+axs6.plot(xref, 0.1*Qloc, 'k-.', label=f'{0.1} Spitzer-Harm')
 axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=2.0)
+axs6.plot(xref, fitQeff((ne, Zbar, Te, gradTe), flim, scale), '-', label=f'{strflim} effective')
+#axs6.plot(xref, flim*Qfs, ':', label=f'{strflim} free-streaming')
 axs6.set_xlabel('cm')
 axs6.set_ylabel('W/cm$^2$')
 axs6.legend()
