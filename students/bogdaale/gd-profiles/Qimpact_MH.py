@@ -52,31 +52,39 @@ useX = False
 useN = False
 useXN = False
 useX2 = False
-useXN1 = False
+useXN1 = False; 
+useQeff = False; useQeffx = False
+useQeffx = False
 
 # Transform data to match given spatial interval 
 # Default values spanning the whole c7b spatial domain
 xmin = -1.0; xmax = 1.0
 if (len(sys.argv) > 1):
   if (sys.argv[1] == 'alphaC'):
-    useC = True; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = False
+    useC = True; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = False; useQeff = False; useQeffx = False
   else:
     if (sys.argv[1] == 'alphaX'):
-      useC = False; useX = True; useN = False; useXN = False; useX2 = False; useXN1 = False
+      useC = False; useX = True; useN = False; useXN = False; useX2 = False; useXN1 = False; useQeff = False; useQeffx = False
     else:
       if (sys.argv[1] == 'alphaN'):
-        useC = False; useX = False; useN = True; useXN = False; useX2 = False; useXN1 = False
+        useC = False; useX = False; useN = True; useXN = False; useX2 = False; useXN1 = False; useQeff = False; useQeffx = False
       else:
         if (sys.argv[1] == 'alphaXN'):
-          useC = False; useX = False; useN = False; useXN = True; useX2 = False; useXN1 = False
+          useC = False; useX = False; useN = False; useXN = True; useX2 = False; useXN1 = False; useQeff = False; useQeffx = False
         else:
           if (sys.argv[1] == 'alphaX2'):
-            useC = False; useX = False; useN = False; useXN = False; useX2 = True; useXN1 = False
+            useC = False; useX = False; useN = False; useXN = False; useX2 = True; useXN1 = False; useQeff = False; useQeffx = False
           else:
             if (sys.argv[1] == 'alphaXN1'):
-              useC = False; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = True
+              useC = False; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = True; useQeff = False; useQeffx = False
             else:
-              print(f'Unknown option {sys.argv[1]}'); quit();
+              if (sys.argv[1] == 'Qeff'):
+                useC = False; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = False; useQeff = True; useQeffx = False
+              else:
+                if (sys.argv[1] == 'Qeffx'):
+                  useC = False; useX = False; useN = False; useXN = False; useX2 = False; useXN1 = False; useQeff = False; useQeffx = True
+                else:
+                  print(f'Unknown option {sys.argv[1]}'); quit();
 
 if (len(sys.argv) > 2):
   xmin = float(sys.argv[2])
@@ -117,32 +125,44 @@ print(f'Constant from Qloc profile k = {par3[0]:.1e} ± {standev3[0]:.1e}')
 #!!! 4-th task
 def fitQimpact(X, alpha0, alpha1, alpha2, alpha3, alpha4):
     #fit function for Qloc profile
-    x, Z, T, gradT = X
+    x, ne, Z, Te, gradTe = X
     if (useC):
-      q = -(alpha0 * kQSH / Z) * ((Z + 0.24) / (Z + 4.2)) * T**2.5 * gradT 
+      q = -(alpha0 * kQSH / Z) * ((Z + 0.24) / (Z + 4.2)) * Te**2.5 * gradTe 
     else:
       if (useX):
         q = ( -((alpha0 + alpha1 * x) * kQSH / Z) * ((Z + 0.24)/(Z+4.2)) * 
-          T**2.5 * gradT )
+          Te**2.5 * gradTe )
       else:
         if (useN):
           q = ( -(alpha0 * kQSH / Z) * ((Z + 0.24) / (Z + 4.2)) *
-            T**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradT )
+            Te**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradTe )
         else: 
           if (useXN):
             q = ( -((alpha0 + alpha1 * x) * kQSH / Z) * ((Z + 0.24) / (Z + 4.2))
-              * T**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradT )
+              * Te**(2.5 * 1.0 / (1.0 + np.exp(alpha3))) * gradTe )
           else: 
             if (useX2):
               q = ( -((alpha0 + alpha1 * x + alpha2 * x * x) * kQSH / Z) * 
-                ((Z + 0.24) / (Z + 4.2)) * T**2.5 * gradT )
+                ((Z + 0.24) / (Z + 4.2)) * Te**2.5 * gradTe )
             else:
               if (useXN1):
                 q = ( -((alpha0 + alpha1 * x) * kQSH / Z) * 
-                  ((Z + 0.24) / (Z + 4.2)) * T**(2.5 * 
-                  1.0 / (1.0 + np.exp(alpha3 + alpha4 * x))) * gradT )
+                  ((Z + 0.24) / (Z + 4.2)) * Te**(2.5 * 
+                  1.0 / (1.0 + np.exp(alpha3 + alpha4 * x))) * gradTe )
               else:
-                print("Unknown loss function")
+                if (useQeff):
+                  flim = alpha0; scale = alpha1
+                  Qloc = -(kQSH/Z)*((Z+0.24)/(Z+4.2))*Te**2.5*gradTe
+                  Qfs = Qstream(ne, Te)
+                  q = scale * Qfs * (1.0 - np.exp(-Qloc/(flim*Qfs)))
+                else:
+                  if (useQeffx):
+                    Qloc = -(kQSH/Z)*((Z+0.24)/(Z+4.2))*Te**2.5*gradTe
+                    Qfs = Qstream(ne, Te)
+                    q = ( (alpha1 + alpha2 * x) * Qfs * 
+                      (1.0 - np.exp(-Qloc/(alpha0 * Qfs))) )
+                  else:
+                    print("Unknown loss function")
     return q
 
 #!!! 5-th task
@@ -152,6 +172,7 @@ if (len(sys.argv) > 4):
 
 print("     For N = ", N, '\n')
 # split the data we use in fit
+split_ne = np.array_split(ne, N)
 split_Z = np.array_split(Zbar, N)
 split_T = np.array_split(Te, N)
 split_gradT = np.array_split(gradTe, N)
@@ -159,8 +180,8 @@ split_Qimpact = np.array_split(Qimpact, N)    #split the data we want to fit
 split_x = np.array_split(xref, N)             #split the x axes to know at which subinterval we currently are
 subfits = np.array([[],[]])                   #contain fit data for each subinterval
 for sub, _ in enumerate(split_x):             #fitting for each subinterval of xref
-  pars, covs = curve_fit(fitQimpact, (split_x[sub], split_Z[sub],\
-                         split_T[sub], split_gradT[sub]), \
+  pars, covs = curve_fit(fitQimpact, (split_x[sub], split_ne[sub],\
+                         split_Z[sub], split_T[sub], split_gradT[sub]),\
                          split_Qimpact[sub],  maxfev = 100000)
   standevs = np.sqrt(np.diag(covs))
   print(f'Pars in subinterval x in <{split_x[sub][0]:.3e} ; {split_x[sub][-1]:.3e}>:','\n',\
@@ -169,25 +190,24 @@ for sub, _ in enumerate(split_x):             #fitting for each subinterval of x
         f'alpha2 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n',\
         f'alpha3 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n',\
         f'alpha4 = {pars[1]:.2e} ± {standevs[1]:.2e}','\n')
-  qsub = fitQimpact((split_x[sub], split_Z[sub], split_T[sub],\
+  qsub = fitQimpact((split_x[sub], split_ne[sub], split_Z[sub], split_T[sub],\
                      split_gradT[sub]), *pars)
   subfits = np.concatenate((subfits, np.array([split_x[sub],\
                             qsub])), axis = 1)
 
 #!!! 9-th task
 # Evaluate effective heat flux (harmonic mean of Qloc and Qfs) 
-def fitQeff(X, flim, scale):
+def fitQeff(X, flim):
     #fit function for Qloc profile
     ne, Z, Te, gradTe = X
     Qloc = -(kQSH/Z)*((Z+0.24)/(Z+4.2))*Te**2.5*gradTe
     Qfs = Qstream(ne, Te)
-    Qeff = scale * Qfs * (1.0 - np.exp(-Qloc/(flim*Qfs)))
+    Qeff = flim * Qfs * (1.0 - np.exp(-Qloc/(flim*Qfs)))
     return Qeff
 par3, cov3 = curve_fit(fitQeff, (ne, Zbar, Te, gradTe), Qimpact,  maxfev = 1000)
 standev3=np.sqrt(np.diag(cov3))
-flim = par3[0]; scale = par3[1]
+flim = par3[0]
 print(f'Flux limiter from Qeff profile flim = {flim:.1e} ± {standev3[0]:.1e}')
-print(f'scale {scale}')
     
 #plot stuff
 fontsize = 15.5
@@ -238,10 +258,10 @@ axs5.set_title(label=r"Knudsen number $Kn_{\mathrm{x}}$")
 
 strflim = f'{flim:.1e}'
 fig6, axs6 = plt.subplots(1, 1, figsize=(8, 8))
-#axs6.plot(subfits[0,:],subfits[1,:], '--', label=f'N={N} fit')
-axs6.plot(xref, 0.1*Qloc, 'k-.', label=f'{0.1} Spitzer-Harm')
-axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=2.0)
-axs6.plot(xref, fitQeff((ne, Zbar, Te, gradTe), flim, scale), '-', label=f'{strflim} effective')
+axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=4.0)
+axs6.plot(subfits[0,:],subfits[1,:], '--', linewidth=3.0, label=r'NN-f(x)')#label=f'N={N} fit')
+axs6.plot(xref, 0.1*Qloc, 'k-.', label=f'Spitzer-Harm x {strflim}')
+axs6.plot(xref, fitQeff((ne, Zbar, Te, gradTe), flim), '-', label=f'Effective f={strflim}')
 #axs6.plot(xref, flim*Qfs, ':', label=f'{strflim} free-streaming')
 axs6.set_xlabel('cm')
 axs6.set_ylabel('W/cm$^2$')
@@ -264,5 +284,11 @@ else:
           if (useXN1):
             axs6.set_title(r'Q = $- f(c+ax) \kappa T^{\alpha(c+ax)} \nabla T$')
           else:
-            print("Unknown title option."); quit()
+            if (useQeff):
+              axs6.set_title(r'Q = $\alpha(x) Q_{fs} (1 - \exp(-Q_{SH}/(f(x) Q_{fs})))$')
+            else:
+              if (useQeffx):
+                axs6.set_title(r'Q = $(a+b x) Q_{fs} (1 - \exp(-Q_{SH}/f_{lim}/Q_{fs}))$')
+              else:
+                print("Unknown title option."); quit()
 plt.show()
