@@ -1,0 +1,150 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[czech]{babel}  
+\usepackage[utf8]{inputenc} 
+\usepackage{graphicx} 
+\usepackage{color} 
+%\usepackage{hyperref}
+\usepackage[hyphens]{url}
+
+\usepackage{etoolbox}
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+
+\textwidth155mm
+\textheight240mm
+\oddsidemargin5mm
+\evensidemargin5mm
+\topmargin-15mm
+\parindent0pt
+
+%\hyphenation{po\-u\-ží\-va\-ným}
+
+\begin{document}
+\pagestyle{empty}
+
+%\begin{center}
+\parbox{0.60\textwidth}{%
+{\footnotesize FAKULTA JADERNÁ A FYZIKÁLNĚ INŽENÝRSKÁ}\\[1mm]
+{\footnotesize KATEDRA FYZIKY}\\[3mm]
+{\bfseries\Large ZADÁNÍ BAKALÁŘSKÉ PRÁCE}\\[3mm]
+{\bf Akademický rok:} 2022/2023
+}
+\qquad
+\parbox{0.36\textwidth}{%
+  \includegraphics[width=0.35\textwidth]{logo_CVUT_CZ_Pantone}
+}
+
+\vspace*{10ex}
+
+%\noindent
+\hspace{-1ex}\begin{tabular}{ll}
+{\it Student:}          & Aleksandr Bogdanov\\\\\\
+{\it Studijní program:} & Fyzikální inženýrství\\\\\\
+{\it Specializace:}     & Fyzika plazmatu a termojaderné fúze\\\\\\
+{\it Název práce:  }    & Aplikace strojového učení při nelokálním hydrodynamickém  \\ 
+{\it (česky)       }    & modelování termojaderné fúze \\\\\\ 
+{\it Název práce:  }    & Machine Learning-Driven Nonlocal Hydrodynamics
+                          for Thermonuclear  \\
+{\it (anglicky) }       & Fusion Modeling \\\\\\
+{\it Jazyk práce:}      & angličtina
+\end{tabular}
+
+\vspace*{10ex}
+
+
+{\it Pokyny pro vypracování:}
+
+\vspace{3ex}
+
+
+V~rámci bakalářské práce proveďte následující úkony:
+\begin{enumerate}
+\item
+  Seznamte se se současným stavem a nejnovějšími poznatky z~oblasti
+  výzkumu inerciální termojaderné fúze (ICF) a důležitostí fyzikálního jevu tzv.
+  transportu~\cite{lit:Abu-Shawareb_etal-PRL:22,lit:Casey_etal-PRL:21,lit:Rosen_etal-HEDP:11}.
+\item
+  Proveďte rešerši hydrodynamických modelů používaných pro simulace fúzních
+  experimentů, zaměřte se především na nelokální elektronový
+  transport~\cite{lit:Holec_Nikl_Weber-PoP:18}.
+\item
+  Zpracujte data získaná z kinetických modelů v Lawrence Livermore National Laboratory.
+\item
+  Naučte hlubokou neuronovou síť (DNN) učit se proces nelokálního transportu na
+  základě správně definované, fyzikálně motivované ztrátové
+  funkce~\cite{lit:PyToTut,lit:PyToInt,lit:PyToReg}.
+\item
+  Porovnejte model neuronové sítě s klasickým modelem limiteru tepelné vodivosti po\-u\-ží\-va\-ným pro ICF~\cite{lit:Chapman_etal-PoP:21}.
+\end{enumerate}
+
+
+
+\vspace{2ex}
+
+\newpage
+
+{\it Doporučená literatura:}
+\vspace{1ex}
+
+
+%\bibliographystyle{plain}
+\bibliographystyle{unsrt}
+%\bibliographystyle{amsalpha}
+%\bibliographystyle{abbrvnat}
+%\bibliographystyle{abbrv}
+\bibliography{references}
+
+\vspace{4ex}
+
+{\it Jméno a pracoviště vedoucího bakalářské práce:}\\[1mm]
+Ing. Milan Holec, Ph.D.\\[1mm]
+Lawrence Livermore National Laboratory, CA, USA
+
+\vspace{3ex}
+
+{\it Jméno a pracoviště konzultanta:}\\[1mm]
+doc. Ing. Pavel Váchal, Ph.D. \\[1mm]
+Katedra fyzikální elektroniky, FJFI ČVUT v Praze
+
+\vspace{3ex}
+
+%\noindent
+\hspace{-1ex}\begin{tabular}{ll}
+{\it Datum zadání bakalářské práce:}      & 20.10.2022\\[1mm]
+{\it Termín odevzdání bakalářské práce:}  & 02.08.2023\\[1mm]
+\multicolumn{2}{l}{\it Doba platnosti zadání je dva roky od data zadání.}
+\end{tabular}
+
+\vspace{4ex}
+
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it garant studijního programu}
+\end{center}
+}
+
+\vspace{2ex}
+
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it vedoucí katedry}
+\end{center}
+}
+\qquad\qquad
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it Děkan}
+\end{center}
+}
+
+\vspace{2ex}
+
+V~Praze dne   20.10.2022
+
+\end{document}
+
+
+
