@@ -159,8 +159,9 @@ def fitQimpact(X, alpha0, alpha1, alpha2, alpha3, alpha4):
                   if (useQeffx):
                     Qloc = -(kQSH/Z)*((Z+0.24)/(Z+4.2))*Te**2.5*gradTe
                     Qfs = Qstream(ne, Te)
-                    q = ( (alpha1 + alpha2 * x) * Qfs * 
-                      (1.0 - np.exp(-Qloc/(alpha0 * Qfs))) )
+                    Qmax = 1.0 / (1.0 + np.exp(alpha0)) * Qfs
+                    q = ( alpha1 * Qmax * 
+                      (1.0 - np.exp(-Qloc / Qmax)) )
                   else:
                     print("Unknown loss function")
     return q
@@ -256,16 +257,19 @@ axs5.set_xlabel('cm')
 axs5.set_ylabel('[-]')
 axs5.set_title(label=r"Knudsen number $Kn_{\mathrm{x}}$")
 
-strflim = f'{flim:.1e}'
-fig6, axs6 = plt.subplots(1, 1, figsize=(8, 8))
-axs6.plot(xref, Qimpact, 'r', label="Impact", linewidth=4.0)
-axs6.plot(subfits[0,:],subfits[1,:], '--', linewidth=3.0, label=r'NN-f(x)')#label=f'N={N} fit')
-axs6.plot(xref, 0.1*Qloc, 'k-.', label=f'Spitzer-Harm x {strflim}')
-axs6.plot(xref, fitQeff((ne, Zbar, Te, gradTe), flim), '-', label=f'Effective f={strflim}')
+strflim = f'{flim:.2f}'
+fig6, axs6 = plt.subplots(1, 1, figsize=(9, 5))
+axs6.plot(xref, Qimpact, 'm', label="Impact (kinetic reference)", linewidth=4.0)
+axs6.plot(subfits[0,:],subfits[1,:], 'c--', linewidth=3.0, label=r'Q with variable $f(x)$')#label=f'N={N} fit')
+axs6.plot(xref, 0.1*Qloc, 'k-.', label=r'Local Q$_{SH}$ x 0.1')
+axs6.plot(xref, fitQeff((ne, Zbar, Te, gradTe), flim), 'g-', label=f'Q limited at const $f$={strflim}')
 #axs6.plot(xref, flim*Qfs, ':', label=f'{strflim} free-streaming')
+axs6.plot(xref, Te/max(Te)*0.1*max(Qloc), 'r:', label=f'Te in ({min(Te):.0f}, {max(Te):.0f}) eV')
+axs6.plot(xref, ne/max(ne)*0.1*max(Qloc), 'b:', label=f'ne in ({min(ne):.1e}, {max(ne):.1e}) cm-3')
 axs6.set_xlabel('cm')
 axs6.set_ylabel('W/cm$^2$')
-axs6.legend()
+axs6.legend(loc="upper left")
+axs6.autoscale(enable=True, axis='x', tight=True)
 if (useC):
   axs6.set_title(r'Q = $- f(c) \kappa T^{2.5} \nabla T$')
 else:
@@ -285,7 +289,8 @@ else:
             axs6.set_title(r'Q = $- f(c+ax) \kappa T^{\alpha(c+ax)} \nabla T$')
           else:
             if (useQeff):
-              axs6.set_title(r'Q = $\alpha(x) Q_{fs} (1 - \exp(-Q_{SH}/(f(x) Q_{fs})))$')
+              axs6.set_title(r'NN-driven spatial varying limiter $f(x)$')
+              #axs6.set_title(r'Q = $\alpha(x) Q_{fs} (1 - \exp(-Q_{SH}/(f(x) Q_{fs})))$')
             else:
               if (useQeffx):
                 axs6.set_title(r'Q = $(a+b x) Q_{fs} (1 - \exp(-Q_{SH}/f_{lim}/Q_{fs}))$')
