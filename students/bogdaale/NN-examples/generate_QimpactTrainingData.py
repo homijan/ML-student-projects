@@ -111,7 +111,8 @@ Qloc = getsub(Qloc, x_Qloc, xref)
 Qimpact = getsub(Qimpact, x_Qimpact, xref)
 Qsnb = getsub(Qsnb, x_Qsnb, xref)
 Qc7bBGK = getsub(Qc7bBGK, x_Qc7bBGK, xref)
-Knx = getsub(Knx, x_Qc7bBGK, xref)
+absKnx = -Knx
+absKnx = getsub(absKnx, x_Qc7bBGK, xref)
 Qc7bAWBS = getsub(Qc7bAWBS, x_Qc7bAWBS, xref)
 
 #calculating Te gradient
@@ -120,7 +121,7 @@ gradTe=np.gradient(Te, xref)
 path = './'
 # Scale the input data
 data_scaling=pd.DataFrame(index=['mean', 'std'], columns=['Z','T','gradT','Kn','n', 'Qimpact']) #will contain mean values and std
-scaled_data=pd.DataFrame([Zbar, Te, gradTe, Knx, ne, Qimpact], index=['Z','T','gradT','Kn','n', 'Qimpact']).T 
+scaled_data=pd.DataFrame([Zbar, Te, gradTe, absKnx, ne, Qimpact], index=['Z','T','gradT','Kn','n', 'Qimpact']).T 
 # ^^^ All data of which I want to find mean and std 
 for val in data_scaling.columns:
   data_scaling[val]['mean']=scaled_data[val].mean()
@@ -129,7 +130,7 @@ for col in scaled_data.columns:
   scaled_data[col]=(scaled_data[col]-data_scaling[col].loc['mean'])/data_scaling[col].loc['std']
 data_scaling.to_csv(f'{path}/data_scaling.csv')
 
-#Qdata=get_data(xref, Zbar, Te, gradTe, Knx, ne, Qimpact, width, step)
+#Qdata=get_data(xref, Zbar, Te, gradTe, absKnx, ne, Qimpact, width, step)
 #Qdata.to_csv(f'{path}/Qdata{step}width{width:.0e}cm.csv')
 scaled_Qdata, numPoints=get_data(xref, scaled_data['Z'],  scaled_data['T'],  
                                  scaled_data['gradT'],  scaled_data['Kn'],
