@@ -102,8 +102,6 @@ plt.rcParams.update({'font.size': fontsize})
 strflim = f'{flim:.2f}'
 fig1, axs1 = plt.subplots(1, 1, figsize=(12, 8))
 axs1.plot(xref, Qimpact, 'm', label="Impact (kinetic reference)", linewidth=4.0)
-# TODO: Use real NN-driven heat flux Q
-QNN = Qimpact
 axs1.plot(xref, QNN, 'c--', linewidth=3.0, label=r'Q with variable $f(x)$ by NN')
 axs1.plot(xref, Qsnb, 'g-.', label="Q by Schurtz-Nikolai-Busquet")
 axs1.plot(xref, 0.1*Qloc, 'k-.', label=r'Local Q$_{SH}$ x 0.1')
@@ -117,15 +115,15 @@ axs1.legend(loc="upper left")
 axs1.autoscale(enable=True, axis='x', tight=True)
 axs1.set_title(r'NN-driven spatial varying limiter $f(x)$')
 
-fig2, axs2 = plt.subplots(1, 1, figsize=(8, 8))
+fig2, axs2 = plt.subplots(1, 1, figsize=(12, 8))
 axs2.plot(xref, Zbar, label="Zbar")
 axs2.set_xlabel('cm')
 axs2.set_title('Zbar')
-#axs2.autoscale(enable=True, axis='x', tight=True)
+axs2.autoscale(enable=True, axis='x', tight=True)
 axs2.legend()
 
 if (False):
-  fig3, axs3 = plt.subplots(1, 1, figsize=(8, 8))
+  fig3, axs3 = plt.subplots(1, 1, figsize=(12, 8))
   axs3.plot(xref, Qloc, label="Qloc")
   axs3.plot(xref, Qimpact, label="Qimpact")
   axs3.plot(xref, Qsnb, label="Qsnb")
@@ -139,10 +137,11 @@ if (False):
   #axs3.autoscale(enable=True, axis='x', tight=True)
   axs3.legend(loc='upper left')
 
-fig4, axs4 = plt.subplots(1, 1, figsize=(8, 8))
+fig4, axs4 = plt.subplots(1, 1, figsize=(12, 8))
 axs4.plot(xref, Knx)
 axs4.set_xlabel('cm')
 axs4.set_ylabel('[-]')
 axs4.set_title(label=r"Knudsen number $Kn_{\mathrm{x}}$")
+axs4.autoscale(enable=True, axis='x', tight=True)
 
 plt.show()
