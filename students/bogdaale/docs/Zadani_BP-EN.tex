@@ -1,0 +1,147 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[czech]{babel}  
+\usepackage[utf8]{inputenc} 
+\usepackage{graphicx} 
+\usepackage{color} 
+%\usepackage{hyperref}
+\usepackage[hyphens]{url}
+
+\usepackage{etoolbox}
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+
+\textwidth155mm
+\textheight240mm
+\oddsidemargin5mm
+\evensidemargin5mm
+\topmargin-15mm
+\parindent0pt
+
+
+\begin{document}
+\pagestyle{empty}
+
+%\begin{center}
+\parbox{0.65\textwidth}{%
+{\footnotesize FACULTY OF NUCLEAR SCIENCES \\%[1mm]
+               AND PHYSICAL ENGINEERING \\%[1mm]
+               DEPARTMENT OF PHYSICS}\\[3mm]
+{\bfseries\Large BACHELOR THESIS ASSIGNMENT}\\[3mm]
+{\bf Academic year:} 2022/2023
+}
+%\qquad
+\parbox{0.36\textwidth}{%
+  \includegraphics[width=0.35\textwidth]{logo_CVUT_EN_Pantone}
+}
+
+\vspace*{10ex}
+
+%\noindent
+\hspace{-1ex}\begin{tabular}{ll}
+{\it Student:}          & Aleksandr Bogdanov\\\\\\
+{\it Study programme:}  & Physical Engineering\\\\\\
+{\it Specialization:}   & Physics of Plasma and Thermonuclear Fusion\\\\\\
+{\it Thesis title:  }   & Aplikace strojového učení při nelokálním hydrodynamickém  \\ 
+{\it (in Czech)       } & modelování termojaderné fúze \\\\\\ 
+{\it Thesis title:  }   & Machine Learning-Driven Nonlocal Hydrodynamics
+                          for Thermonuclear  \\
+{\it (in English) }     & Fusion Modeling \\\\\\
+{\it Language of the}   & \\
+{\it Thesis:}           & English
+\end{tabular}
+
+\vspace*{10ex}
+
+
+{\it Instructions:}
+
+\vspace{3ex}
+
+\begin{enumerate}
+\item
+  Get acquainted with the state-of-the-art inertial confinement fusion (ICF)
+  research and the importance of the physical phenomena of
+  transport~\cite{lit:Abu-Shawareb_etal-PRL:22,lit:Casey_etal-PRL:21,lit:Rosen_etal-HEDP:11}.
+\item
+  Research hydrodynamic models currently used in ICF with the focus on nonlocal
+  electron transport~\cite{lit:Holec_Nikl_Weber-PoP:18}.
+\item
+  Process kinetic modeling data provided by Lawrence Livermore National Laboratory.
+\item
+  Teach a deep neural network (DNN) to learn the process of nonlocal electron
+  transport based on physically motivated loss
+  function~\cite{lit:PyToTut,lit:PyToInt,lit:PyToReg}.
+\item
+  Compare the DNN model with the classical heat flux limiter model used
+  in ICF~\cite{lit:Chapman_etal-PoP:21}.
+\end{enumerate}
+
+
+
+\vspace{2ex}
+
+\newpage
+
+{\it Recommended literature:}
+\vspace{1ex}
+
+
+%\bibliographystyle{plain}
+\bibliographystyle{unsrt}
+%\bibliographystyle{amsalpha}
+%\bibliographystyle{abbrvnat}
+%\bibliographystyle{abbrv}
+\bibliography{references}
+
+\vspace{4ex}
+
+{\it Name and affiliation of the supervisor:}\\[1mm]
+Ing. Milan Holec, Ph.D.\\[1mm]
+Lawrence Livermore National Laboratory, CA, USA
+
+\vspace{3ex}
+
+{\it Name and affiliation of the consultant:}\\[1mm]
+doc. Ing. Pavel Váchal, Ph.D. \\[1mm]
+Department of Physical Electronics, FNSPE CTU in Prague
+
+\vspace{3ex}
+
+%\noindent
+\hspace{-1ex}\begin{tabular}{ll}
+{\it Date of the assignment:}      & 20.10.2022\\[1mm]
+{\it Due date of the thesis:}  & 02.08.2023\\[1mm]
+\multicolumn{2}{l}{\it The assignment is valid for two years since the date of the assignment.}
+\end{tabular}
+
+\vspace{4ex}
+
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it Guarantor of the study programme}
+\end{center}
+}
+
+\vspace{2ex}
+
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it Department head}
+\end{center}
+}
+\qquad\qquad
+\parbox{0.40\textwidth}{%
+\begin{center}
+...........................................................\\
+  {\it Dean}
+\end{center}
+}
+
+\vspace{2ex}
+
+In~Prague on 20.10.2022
+
+\end{document}
+
