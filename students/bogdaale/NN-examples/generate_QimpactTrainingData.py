@@ -31,8 +31,12 @@ x_Qimpact/=1e4
 x_Qsnb/=1e4
 
 def getsub(f, x, xref):
-  f_cs = CubicSpline(x, f)
-  return f_cs(xref)
+    f_cs = CubicSpline(x, f, extrapolate=True)
+    evalf = f_cs(xref)
+    # Floor the values
+    scale = 1e-4
+    evalf[evalf < scale * max(evalf)] = scale * max(evalf)
+    return evalf
 
 def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step):  
     rad=0     #finds out how many points fits in (!)radius(!) range
@@ -80,21 +84,26 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step):
     
     df_Qdata=pd.DataFrame(Qdata, columns=column_names, index=x_c)
     print('Done')
-    return(df_Qdata)
+    return df_Qdata, numPoints
 
 # Transform data to match given spatial interval 
-# Default values spanning the whole c7b spatial domain
-xmin = -1.0; xmax = 1.0
-# Default kernel size is 50 microns
+# Default values spanning the whole c7b spatial domain and number of points
+xmin = -1.0; xmax = 1.0; Npoints = 10000; step = 32
+# Default kernel size is 100 microns
 width = 100e-4
 if (len(sys.argv) > 1):
-  width = float(sys.argv[1])
+    width = float(sys.argv[1]) * 1e-4
 if (len(sys.argv) > 2):
-  xmin = float(sys.argv[2])
+    xmin = float(sys.argv[2])
 if (len(sys.argv) > 3):
-  xmax = float(sys.argv[3])
+    xmax = float(sys.argv[3])
+if (len(sys.argv) > 4):
+    Npoints = int(sys.argv[4])
+if (len(sys.argv) > 5):
+    step = int(sys.argv[5])
+print(f'width={width:.1e}, xmin={xmin:.1e}, xmax={xmax:.1e}, Npoints={Npoints}')
 
-xref = x_Te[np.logical_and(x_Te > xmin, x_Te < xmax)]
+xref = np.linspace(xmin, xmax, Npoints)
 Te = getsub(Te, x_Te, xref)
 ne = getsub(ne, x_ne, xref)
 Zbar = getsub(Zbar, x_Zbar, xref)
@@ -120,12 +129,9 @@ for col in scaled_data.columns:
   scaled_data[col]=(scaled_data[col]-data_scaling[col].loc['mean'])/data_scaling[col].loc['std']
 data_scaling.to_csv(f'{path}/data_scaling.csv')
 
-# Create data points using an increasing count (bigger to smaller steps)
-steps = [32, 16, 8]
-for step in steps:
-  #Qdata=get_data(xref, Zbar, Te, gradTe, Knx, ne, Qimpact, width, step)
-  #Qdata.to_csv(f'{path}/Qdata{step}width{width:.0e}cm.csv')
-  scaled_Qdata=get_data(xref, scaled_data['Z'],  scaled_data['T'],  
-                        scaled_data['gradT'],  scaled_data['Kn'],
-                        scaled_data['n'],  scaled_data['Qimpact'], width, step)
-  scaled_Qdata.to_csv(f'{path}/scaled_QdataKn{step}width{width:.0e}cm.csv')
+#Qdata=get_data(xref, Zbar, Te, gradTe, Knx, ne, Qimpact, width, step)
+#Qdata.to_csv(f'{path}/Qdata{step}width{width:.0e}cm.csv')
+scaled_Qdata, numPoints=get_data(xref, scaled_data['Z'],  scaled_data['T'],  
+                                 scaled_data['gradT'],  scaled_data['Kn'],
+                                 scaled_data['n'],  scaled_data['Qimpact'], width, step)
+scaled_Qdata.to_csv(f'{path}/scaled_QdataKn{numPoints}width{width*1e4:.0f}microns.csv')
