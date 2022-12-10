@@ -1,3 +1,7 @@
+# NN-driven heat flux
+Jupyter notebook uses training data generated from Impact kinetic simulation. Go to `NN-examples`
+ and generate the data by `python3 generate_QimpactTrainingData.py`. The jupyter notebook `ptl-NNheatflux.ipynb` can be opened via jupyter-notebook server started on the HPC cluster at FJFI `ssh -L 8888:localhost:8888 username@q3b.fjfi.cvut.cz` (once started you can open jupyter in your browser at `http://localhost:8888/?token=...`).
+ 
 # Gadolinium-He hohlraum plasma profile
 1. try plotting the profiles of temperature `Te`, electron density `ne`, and ionization `Z` in `./gd-profiles` by calling `python3 plot-gd-profiles.py`
 2. add a figure plotting the Knudsen number `Kn` from `Q_gdhohlraum_cm_10ps_c7b-bgk-Wcm2-clogCHIC.txt`
