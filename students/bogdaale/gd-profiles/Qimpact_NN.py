@@ -9,8 +9,9 @@ import sys
 
 #!!!
 def impdata(filename):
-    url=f'https://raw.githubusercontent.com/homijan/ML-student-projects/intro-ab/students/bogdaale/gd-profiles/{filename}'
-    return url
+    #path=f'https://raw.githubusercontent.com/homijan/ML-student-projects/intro-ab/students/bogdaale/gd-profiles/{filename}'
+    path = f'./{filename}'
+    return path
 #!!!
 
 x_Te, Te = np.loadtxt(impdata('Te_gdhohlraum_cm_10ps_TekeV_interp.txt'), usecols=(0, 1), unpack=True)
@@ -23,6 +24,10 @@ x_Qsnb, Qsnb = np.loadtxt(impdata('Q_gdhohlraum_microns_10ps_separatedsnbWcm2.tx
 
 x_Qc7bBGK, Qc7bBGK, Knx = np.loadtxt(impdata('Q_gdhohlraum_cm_10ps_c7b-bgk-Wcm2-clogCHIC.txt'), comments='#', delimiter=', ', usecols=(0, 8, 6), unpack=True)
 x_Qc7bAWBS, Qc7bAWBS = np.loadtxt(impdata('Q_gdhohlraum_cm_10ps_c7b-awbs-Wcm2-clogCHIC.txt'), comments='#', delimiter=', ', usecols=(0, 8), unpack=True)
+
+x_QNN, QNN = np.loadtxt(impdata('Qimpact-NN.txt'), usecols=(0, 1), unpack=True)
+
+
 
 # changing units um->cm
 x_Qloc/=1e4
@@ -61,6 +66,7 @@ Zbar = getsub(Zbar, x_Zbar, xref)
 Qloc = getsub(Qloc, x_Qloc, xref)
 Qimpact = getsub(Qimpact, x_Qimpact, xref)
 Qsnb = getsub(Qsnb, x_Qsnb, xref)
+QNN = getsub(QNN, x_QNN, xref)
 Qc7bBGK = getsub(Qc7bBGK, x_Qc7bBGK, xref)
 Knx = getsub(Knx, x_Qc7bBGK, xref)
 Qc7bAWBS = getsub(Qc7bAWBS, x_Qc7bAWBS, xref)
