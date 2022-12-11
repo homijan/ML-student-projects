@@ -46,6 +46,10 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step):
         rad+=1
     
     numPoints = len(Z[0:2*rad:step]) #int(2*rad/step)+1 # the plus one because of integer evaluation
+    if (numPoints % 2 == 0):
+        print(f'Number of points per field {numPoints} is not odd.')
+        print(f'Change step or width.')
+        quit()
     numFields = 5 # if including Kn
     Qdata=np.empty((0,numFields*numPoints+3), int) #2*rad -  #of points in interval *5 - for each phsy quantity +3 - for three points of Qimp
     print(f'Row length is {numFields*numPoints+3} (each quantity {numPoints} points)') #2*5{x,Z,T,gradT,Kn,N} + 3{qimpact}
