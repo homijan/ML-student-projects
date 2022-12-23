@@ -1,9 +1,11 @@
+import torch
 from torch.utils.data import TensorDataset
 
-def heat_flux_datasets(scaled_data, test_split, train_split):
+def heat_flux_datasets(scaled_Qdata, test_split, train_split):
     # Drop extra left/right values of the heat flux
-    scaled_Qdata = scaled_Qdata.drop('Qimpact_c-1')
-    scaled_Qdata = scaled_Qdata.drop('Qimpact_c+1')
+    #scaled_Qdata = scaled_Qdata.drop('Qimpact_c-1')
+    #scaled_Qdata = scaled_Qdata.drop('Qimpact_c+1')
+    scaled_Qdata = scaled_Qdata.drop(['Qimpact_c-1', 'Qimpact_c+1'], axis=1)
 
     dropKn = False
     # TODO: are Kn and n redundant? If yes, which one gives better result?
@@ -11,10 +13,11 @@ def heat_flux_datasets(scaled_data, test_split, train_split):
         for col in scaled_Qdata.columns:
             if (col[:2]=='Kn'):
                 scaled_Qdata = scaled_Qdata.drop(col)
-    else:
-        for col in scaled_Qdata.columns:
-            if (col[:1]=='n'):
-                scaled_Qdata = scaled_Qdata.drop(col)
+    # TODO: check density removal
+    #else:
+    #    for col in scaled_Qdata.columns:
+    #        if (col[:1]=='n'):
+    #            scaled_Qdata = scaled_Qdata.drop(col)
 
     # Create randomized data set.
     data_set = scaled_Qdata.sample(n=scaled_Qdata.shape[0])
@@ -32,7 +35,7 @@ def heat_flux_datasets(scaled_data, test_split, train_split):
     valid_set_size = (data_set_size - test_set_size) - train_set_size
 
     # Split data
-    test_set = data_set.ilo[:test_set_size]
+    test_set = data_set.iloc[:test_set_size]
     train_set = data_set.iloc[test_set_size:test_set_size+train_set_size]
     validation_set = data_set.iloc[test_set_size+train_set_size:]
 
@@ -43,8 +46,8 @@ def heat_flux_datasets(scaled_data, test_split, train_split):
     target_fields = ['Qimpact_c']
     test_features, test_targets =\
         test_set.drop(target_fields, axis=1), test_set[target_fields]
-    train_features, train_targets =\ 
-        train_set.drop(terget_fields, axis=1), train_set[target_fields]
+    train_features, train_targets =\
+        train_set.drop(target_fields, axis=1), train_set[target_fields]
     validation_features, validation_targets =\
         validation_set.drop(target_fields, axis=1), validation_set[target_fields]
     # Special object for visualization

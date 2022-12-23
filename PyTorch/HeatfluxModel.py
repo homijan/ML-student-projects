@@ -133,5 +133,5 @@ class AlphacAlphanModel(AlphaModel):
         Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
         heatflux_model = - alphac * kQSH / Z * ((Z + 0.24)/(Z + 4.2))\
-          * T**(2.5 / (1.0 + np.exp(alphan)) * gradT
+          * T**(2.5 / (1.0 + np.exp(alphan))) * gradT
         return heatflux_model
