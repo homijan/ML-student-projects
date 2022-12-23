@@ -3,8 +3,6 @@ from torch.utils.data import TensorDataset
 
 def heat_flux_datasets(scaled_Qdata, test_split, train_split):
     # Drop extra left/right values of the heat flux
-    #scaled_Qdata = scaled_Qdata.drop('Qimpact_c-1')
-    #scaled_Qdata = scaled_Qdata.drop('Qimpact_c+1')
     scaled_Qdata = scaled_Qdata.drop(['Qimpact_c-1', 'Qimpact_c+1'], axis=1)
 
     dropKn = False

@@ -84,6 +84,15 @@ class AlphaModel(pl.LightningModule):
         logs = {'test_loss': avg_loss}      
         return {'avg_test_loss': avg_loss, 'log': logs, 'progress_bar': logs }
 
+class DirectModel(AlphaModel): 
+
+    def __init__(self, Nfeatures, N1, N2, scaling):
+        super(DirectModel, self).__init__(Nfeatures, N1, N2, 1, scaling)
+
+    def heatflux_model(self, x):
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        return self.forward(x) * std + mean
 
 class AlphacModel(AlphaModel): 
 
@@ -132,7 +141,7 @@ class AlphacAlphanModel(AlphaModel):
             i = i+1
         # Get alphas
         alphas = self.forward(x)
-        alphac = alphas[:, 0]; alphac = alphan[:, 1]
+        alphac = alphas[:, 0]; alphan = alphas[:, 1]
         # Get local heat flux if no large Kn in the kernel interval
         #Kn = feature['Kn']
         Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
