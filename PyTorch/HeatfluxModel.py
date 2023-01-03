@@ -34,10 +34,8 @@ class AlphaModel(pl.LightningModule):
 ### Training ### 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        # Evaluate physical model and apply data-scaling
-        mean = self.scaling['Qimpact']['mean']
-        std = self.scaling['Qimpact']['std']
-        logits = (self.heatflux_model(x) - mean) / std
+        # Evaluate physical model using data scaling
+        logits = self.scaled_heatflux_model(x)
         # Evaluate loss comparing to the kinetic heat flux in y
         loss = self.mse_loss(logits, y)
         # Add logging
@@ -47,10 +45,8 @@ class AlphaModel(pl.LightningModule):
 ### Validation ### 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        # Evaluate physical model and apply data-scaling
-        mean = self.scaling['Qimpact']['mean']
-        std = self.scaling['Qimpact']['std']
-        logits = (self.heatflux_model(x) - mean) / std
+        # Evaluate physical model using data scaling
+        logits = self.scaled_heatflux_model(x)
         # Evaluate loss comparing to the kinetic heat flux in y
         loss = self.mse_loss(logits, y)
         return {'val_loss': loss}
@@ -61,39 +57,20 @@ class AlphaModel(pl.LightningModule):
         tensorboard_logs = {'val_loss': avg_loss}
         return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
 
-### Testing ###     
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        # Evaluate physical model and apply data-scaling
-        heatflux_model = self.heatflux_model(x)
-        mean = self.scaling['Qimpact']['mean']
-        std = self.scaling['Qimpact']['std']
-        logits = (heatflux_model - mean) / std
-        # Evaluate loss comparing to the kinetic heat flux in y
-        loss = self.mse_loss(logits, y)
-        # Compare model to the kinetic heat flux in y
-        correct = torch.sum(logits == y.data)
-        # TODO: change this global variable
-        predictions_pred.append(heatflux_model)
-        predictions_actual.append((y.data - mean) / std)
-        return {'test_loss': loss, 'test_correct': correct, 'logits': logits}
-    
-    # Define test end
-    def test_epoch_end(self, outputs):
-        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-        logs = {'test_loss': avg_loss}      
-        return {'avg_test_loss': avg_loss, 'log': logs, 'progress_bar': logs }
 
 class DirectModel(AlphaModel): 
 
     def __init__(self, Nfeatures, N1, N2, scaling):
         super(DirectModel, self).__init__(Nfeatures, N1, N2, 1, scaling)
 
+    def scaled_heatflux_model(self, x):
+        return self.forward(x)
+
     def heatflux_model(self, x):
         mean = self.scaling['Qimpact']['mean']
         std = self.scaling['Qimpact']['std']
-        return self.forward(x) * std + mean
-
+        return self.scaled_heatflux_model(x) * std + mean    
+    
 class AlphacModel(AlphaModel): 
 
     def __init__(self, Nfeatures, N1, N2, scaling):
@@ -117,10 +94,26 @@ class AlphacModel(AlphaModel):
         #Kn = feature['Kn']
         Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
-        heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
-          * T**2.5 * gradT
+        #heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
+        #  * T**2.5 * gradT
+        heatflux_model = self.forward(x)
+        heatflux_model[:, 0] = - 0.1 * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+          * T[:]**2.5 * gradT[:]
+        #heatflux_model[:, 0] = - alphac[:, 0] * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        #  * T[:]**2.5 * gradT[:]
+        #heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        #  * T[:]**(2.5 / (1.0 + np.exp(alphac.detach().numpy()[:, 0]))) * gradT[:]
+        #print(f'alphac {alphac.size()}')
+        #print(f'heatflux {heatflux_model.size()}')
+        #print(f'Npoints {self.Npoints}, ip {ip}, Z {Z}, T {T}, gradT {gradT}')
+        #print(f'alphac {alphac}, hf {heatflux_model}')
         return heatflux_model
 
+    def scaled_heatflux_model(self, x):
+        # Work with scaled values
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        return (self.heatflux_model(x) - mean) / std
 
 class AlphacAlphanModel(AlphaModel): 
 
@@ -148,4 +141,8 @@ class AlphacAlphanModel(AlphaModel):
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
         heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
           * T**(2.5 / (1.0 + np.exp(alphan))) * gradT
-        return heatflux_model
+        # Work with scaled values
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        scaled_heatflux_model = (heatflux_model - mean) / std
+        return scaled_heatflux_model
