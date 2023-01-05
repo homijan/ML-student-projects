@@ -1,0 +1,151 @@
+import torch
+import pytorch_lightning as pl
+from pytorch_lightning import Trainer
+import numpy as np
+
+class AlphaModel(pl.LightningModule): 
+
+### Model ###
+    def __init__(self, Nfeatures, N1, N2, Ntargets, scaling):
+        super(AlphaModel, self).__init__() # TODO: if not "cannot assign module before Module.__init__() call"
+        # Initialize layers
+        self.fc1 = torch.nn.Linear(Nfeatures, N1)
+        self.fc2 = torch.nn.Linear(N1, N2)
+        self.fc3 = torch.nn.Linear(N2, Ntargets)
+        # Keep data scaling
+        self.scaling = scaling
+        # TODO: improve evaluation of Npoints
+        self.Npoints = int(Nfeatures / 5)
+        # TODO: better place to define mse_loss
+        self.mse_loss = torch.nn.MSELoss(reduction = 'mean')
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+### The Optimizer ### 
+    def configure_optimizers(self):
+        #optimizer = torch.optim.Adam(self.parameters(), lr=0.05)#l_rate) # TODO: should be a parameter
+        optimizer = torch.optim.SGD(self.parameters(), lr=0.05)#l_rate) # TODO: should be a parameter
+        return optimizer
+
+### Training ### 
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        # Evaluate physical model using data scaling
+        logits = self.scaled_heatflux_model(x)
+        # Evaluate loss comparing to the kinetic heat flux in y
+        loss = self.mse_loss(logits, y)
+        # Add logging
+        logs = {'loss': loss}
+        return {'loss': loss, 'log': logs}
+
+### Validation ### 
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        # Evaluate physical model using data scaling
+        logits = self.scaled_heatflux_model(x)
+        # Evaluate loss comparing to the kinetic heat flux in y
+        loss = self.mse_loss(logits, y)
+        return {'val_loss': loss}
+
+    # Define validation epoch end
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        tensorboard_logs = {'val_loss': avg_loss}
+        return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
+
+
+class DirectModel(AlphaModel): 
+
+    def __init__(self, Nfeatures, N1, N2, scaling):
+        super(DirectModel, self).__init__(Nfeatures, N1, N2, 1, scaling)
+
+    def scaled_heatflux_model(self, x):
+        return self.forward(x)
+
+    def heatflux_model(self, x):
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        return self.scaled_heatflux_model(x) * std + mean    
+    
+class AlphacModel(AlphaModel): 
+
+    def __init__(self, Nfeatures, N1, N2, scaling):
+        super(AlphacModel, self).__init__(Nfeatures, N1, N2, 1, scaling)
+
+    def heatflux_model(self, x):
+        # Extract features for modified local heat flux
+        featureName = ['Z', 'T', 'gradT', 'Kn', 'n']
+        feature = {}
+        ip = int(self.Npoints / 2)
+        i = 0
+        for name in featureName:
+            mean, std = self.scaling[name]['mean'], self.scaling[name]['std']
+            # Batch values of the feature at xc
+            feature[name] = x[:, i * self.Npoints + ip] * std + mean
+            #feature[name] = x[:, i * Npoints:(i+1) * Npoints] * std + mean
+            i = i+1
+        # Get alphas
+        alphac = self.forward(x)
+        # Get local heat flux if no large Kn in the kernel interval
+        #Kn = feature['Kn']
+        Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
+        kQSH = 6.1e+02 # scaling constant consistent with SCHICK
+        #heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
+        #  * T**2.5 * gradT
+        ### TODO
+        # Workaround to get proper tensor dimensions
+        heatflux_model = self.forward(x)
+        heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+          * T[:]**2.5 * gradT[:]
+        #heatflux_model[:, 0] = - alphac[:, 0] * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        #  * T[:]**2.5 * gradT[:]
+        #heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        #  * T[:]**(2.5 / (1.0 + np.exp(alphac.detach().numpy()[:, 0]))) * gradT[:]
+        #print(f'alphac {alphac.size()}')
+        #print(f'heatflux {heatflux_model.size()}')
+        #print(f'Npoints {self.Npoints}, ip {ip}, Z {Z}, T {T}, gradT {gradT}')
+        #print(f'alphac {alphac}, hf {heatflux_model}')
+        ###
+        return heatflux_model
+
+    def scaled_heatflux_model(self, x):
+        # Work with scaled values
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        return (self.heatflux_model(x) - mean) / std
+
+class AlphacAlphanModel(AlphaModel): 
+
+    def __init__(self, Nfeatures, N1, N2, scaling):
+        super(AlphacAlphanModel, self).__init__(Nfeatures, N1, N2, 2, scaling)
+
+    def heatflux_model(self, x):
+        # Extract features for modified local heat flux
+        featureName = ['Z', 'T', 'gradT', 'Kn', 'n']
+        feature = {}
+        ip = int(self.Npoints / 2)
+        i = 0
+        for name in featureName:
+            mean, std = self.scaling[name]['mean'], self.scaling[name]['std']
+            # Batch values of the feature at xc
+            feature[name] = x[:, i * self.Npoints + ip] * std + mean
+            #feature[name] = x[:, i * Npoints:(i+1) * Npoints] * std + mean
+            i = i+1
+        # Get alphas
+        alphas = self.forward(x)
+        alphac = alphas[:, 0]; alphan = alphas[:, 1]
+        # Get local heat flux if no large Kn in the kernel interval
+        #Kn = feature['Kn']
+        Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
+        kQSH = 6.1e+02 # scaling constant consistent with SCHICK
+        heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
+          * T**(2.5 / (1.0 + np.exp(alphan))) * gradT
+        # Work with scaled values
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        scaled_heatflux_model = (heatflux_model - mean) / std
+        return scaled_heatflux_model
