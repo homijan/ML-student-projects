@@ -27,7 +27,7 @@ class AlphaModel(pl.LightningModule):
 
 ### The Optimizer ### 
     def configure_optimizers(self):
-        #optimizer = torch.optim.Adam(self.parameters, lr=0.05)#l_rate) # TODO: should be a parameter
+        #optimizer = torch.optim.Adam(self.parameters(), lr=0.05)#l_rate) # TODO: should be a parameter
         optimizer = torch.optim.SGD(self.parameters(), lr=0.05)#l_rate) # TODO: should be a parameter
         return optimizer
 
@@ -96,8 +96,10 @@ class AlphacModel(AlphaModel):
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
         #heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
         #  * T**2.5 * gradT
+        ### TODO
+        # Workaround to get proper tensor dimensions
         heatflux_model = self.forward(x)
-        heatflux_model[:, 0] = - 0.1 * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
           * T[:]**2.5 * gradT[:]
         #heatflux_model[:, 0] = - alphac[:, 0] * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
         #  * T[:]**2.5 * gradT[:]
@@ -107,6 +109,7 @@ class AlphacModel(AlphaModel):
         #print(f'heatflux {heatflux_model.size()}')
         #print(f'Npoints {self.Npoints}, ip {ip}, Z {Z}, T {T}, gradT {gradT}')
         #print(f'alphac {alphac}, hf {heatflux_model}')
+        ###
         return heatflux_model
 
     def scaled_heatflux_model(self, x):
