@@ -47,6 +47,7 @@ class AlphaModel(pl.LightningModule):
         x, y = batch
         # Evaluate physical model using data scaling
         logits = self.scaled_heatflux_model(x)
+        print(f'logits {logits}')
         # Evaluate loss comparing to the kinetic heat flux in y
         loss = self.mse_loss(logits, y)
         return {'val_loss': loss}
@@ -99,8 +100,8 @@ class AlphacModel(AlphaModel):
         ### TODO
         # Workaround to get proper tensor dimensions
         heatflux_model = self.forward(x)
-        heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
-          * T[:]**2.5 * gradT[:]
+        heatflux_model[:, 0] = - alphac[:, 0] * alphac[:, 0] *\
+          kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2)) * T[:]**2.5 * gradT[:]
         #heatflux_model[:, 0] = - alphac[:, 0] * kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
         #  * T[:]**2.5 * gradT[:]
         #heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
@@ -116,6 +117,7 @@ class AlphacModel(AlphaModel):
         # Work with scaled values
         mean = self.scaling['Qimpact']['mean']
         std = self.scaling['Qimpact']['std']
+        print(f'heatflux_model {self.heatflux_model(x)}')
         return (self.heatflux_model(x) - mean) / std
 
 class AlphacAlphanModel(AlphaModel): 
@@ -142,10 +144,58 @@ class AlphacAlphanModel(AlphaModel):
         #Kn = feature['Kn']
         Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
-        heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
-          * T**(2.5 / (1.0 + np.exp(alphan))) * gradT
+        #heatflux_model = - alphac * kQSH / Z * ((Z + 0.24) / (Z + 4.2))\
+        #  * T**(2.5 / (1.0 + np.exp(alphan))) * gradT
+        ### TODO
+        # Workaround to get proper tensor dimensions
+        heatflux_model = alphac
+        heatflux_model[:, 0] = - alphac[:, 0] * alphac[:, 0] *\
+          kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2)) *\
+          T[:]**(2.5 / (1.0 + np.exp(alphac.detach().numpy()[:, 0]))) * gradT[:]
+        print(f'alphac {alphac.size()}')
+        print(f'heatflux {heatflux_model.size()}')
+        #print(f'Npoints {self.Npoints}, ip {ip}, Z {Z}, T {T}, gradT {gradT}')
+        #print(f'alphac {alphac}, hf {heatflux_model}')
+        ###
         # Work with scaled values
         mean = self.scaling['Qimpact']['mean']
         std = self.scaling['Qimpact']['std']
         scaled_heatflux_model = (heatflux_model - mean) / std
         return scaled_heatflux_model
+    
+class LocalModel(AlphaModel): 
+
+    def __init__(self, Nfeatures, N1, N2, scaling):
+        super(LocalModel, self).__init__(Nfeatures, N1, N2, 1, scaling)
+
+    def heatflux_model(self, x):
+        # Extract features for modified local heat flux
+        featureName = ['Z', 'T', 'gradT', 'Kn', 'n']
+        feature = {}
+        ip = int(self.Npoints / 2)
+        i = 0
+        for name in featureName:
+            mean, std = self.scaling[name]['mean'], self.scaling[name]['std']
+            # Batch values of the feature at xc
+            feature[name] = x[:, i * self.Npoints + ip] * std + mean
+            #feature[name] = x[:, i * Npoints:(i+1) * Npoints] * std + mean
+            i = i+1
+        # Get alphas
+        alphac = self.forward(x)
+        # Get local heat flux if no large Kn in the kernel interval
+        #Kn = feature['Kn']
+        Z = feature['Z']; T = feature['T']; gradT = feature['gradT']
+        kQSH = 6.1e+02 # scaling constant consistent with SCHICK
+        ### TODO
+        # Workaround to get proper tensor dimensions
+        heatflux_model = self.forward(x)
+        heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+          * T[:]**2.5 * gradT[:]
+        ###
+        return heatflux_model
+
+    def scaled_heatflux_model(self, x):
+        # Work with scaled values
+        mean = self.scaling['Qimpact']['mean']
+        std = self.scaling['Qimpact']['std']
+        return (self.heatflux_model(x) - mean) / std   
