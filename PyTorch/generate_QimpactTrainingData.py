@@ -81,15 +81,15 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):
                 x = X
                 b = (1.0 - (T1 / T0)**nln) / (x1**2.0 - x0**2.0 * (T1 / T0)**nln)
                 c = T0 / (1.0 - b * x0**2.0)**(1.0 / nln)
-                print(f'T0 {T0} T0(b, c) {c * (1.0 - b * x0**2.0)**(1.0/nln)}')
-                print(f'T1 {T1} T1(b, c) {c * (1.0 - b * x1**2.0)**(1.0/nln)}')
-                return c * (1.0 - b * x**2.0)**(1.0 / nln)
+                #print(f'T0 {T0} T0(b, c) {c * (1.0 - b * x0**2.0)**(1.0/nln)}')
+                #print(f'T1 {T1} T1(b, c) {c * (1.0 - b * x1**2.0)**(1.0/nln)}')
+                return c * (1.0 - b * x**2.0)**(1.0 / abs(nln))
             xpoints = x[ind:ind+2*rad:step]
             Tpoints = T[ind:ind+2*rad:step].values * T_std + T_mean
             x0 = xpoints[0]; T0 = Tpoints[0]; x1 = xpoints[len(xpoints)-1]; T1 = Tpoints[len(Tpoints)-1]
             par, cov = curve_fit(Tselfsimilar, xpoints, Tpoints, maxfev = 1000)
             plt.plot(xpoints, Tpoints, 'k-')
-            plt.plot(xpoints, Tselfsimilar(xpoints, par[0]))
+            plt.plot(xpoints, Tselfsimilar(xpoints, par[0]), 'r--')
             plt.show()
             #standev=np.sqrt(np.diag(cov))
             print(f'xc {x[rad+ind]}, par {par}, Tavg {0.5*(T0 + T1)}')
