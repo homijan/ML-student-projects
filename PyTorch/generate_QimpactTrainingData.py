@@ -17,18 +17,9 @@ def impdata(filename):
 x_Te, Te = np.loadtxt(impdata('Te_gdhohlraum_cm_10ps_TekeV_interp.txt'), usecols=(0, 1), unpack=True)
 x_ne, ne = np.loadtxt(impdata('ne_gdhohlraum_cm_ne1e20cm3_interp.txt'), usecols=(0, 1), unpack=True)
 x_Zbar, Zbar = np.loadtxt(impdata('Zbar_gdhohlraum_cm_Z_interp.txt'), usecols=(0, 1), unpack=True)
-
-x_Qloc, Qloc = np.loadtxt(impdata('Q_gdhohlraum_microns_10ps_LocalWcm2.txt'), usecols=(0, 1), unpack=True)
 x_Qimpact, Qimpact = np.loadtxt(impdata('Q_gdhohlraum_microns_10ps_IMPACTWcm2.txt'), usecols=(0, 1), unpack=True)
-x_Qsnb, Qsnb = np.loadtxt(impdata('Q_gdhohlraum_microns_10ps_separatedsnbWcm2.txt'), usecols=(0, 1), unpack=True)
-
-x_Qc7bBGK, Qc7bBGK, Knx = np.loadtxt(impdata('Q_gdhohlraum_cm_10ps_c7b-bgk-Wcm2-clogCHIC.txt'), comments='#', delimiter=', ', usecols=(0, 8, 6), unpack=True)
-x_Qc7bAWBS, Qc7bAWBS = np.loadtxt(impdata('Q_gdhohlraum_cm_10ps_c7b-awbs-Wcm2-clogCHIC.txt'), comments='#', delimiter=', ', usecols=(0, 8), unpack=True)
-
 # changing units um->cm
-x_Qloc/=1e4
 x_Qimpact/=1e4
-x_Qsnb/=1e4
 
 def getsub(f, x, xref):
     f_cs = CubicSpline(x, f, extrapolate=True)
@@ -38,7 +29,7 @@ def getsub(f, x, xref):
     evalf[evalf < scale * max(evalf)] = scale * max(evalf)
     return evalf
 
-def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):  
+def get_data(x, Z, T, gradT, n, Qimp, width, step, T_mean, T_std):  
     rad=0     #finds out how many points fits in (!)radius(!) range
     s=0
     while s<=width/2:
@@ -50,9 +41,9 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):
         print(f'Number of points per field {numPoints} is not odd.')
         print(f'Change step or width.')
         quit()
-    numFields = 6 #5 # if including x and Kn
-    Qdata=np.empty((0,numFields*numPoints+2), int) #2 * rad "#of points in interval" * 6 "for each phsy quantity" + 2 "for Q and nln"
-    print(f'Row length is {numFields*numPoints+2} (each of x, Z, T, gradT, Kn, n {numPoints} points plus Q and nln)') #2*6{x,Z,T,gradT,Kn,n} + 2{qimpact, nln}
+    numFields = 5 # x, Z, T, gradT, n
+    Qdata=np.empty((0,numFields*numPoints+2), int) #2 * rad "#of points in interval" * 5 "for each phsy quantity" + 2 "for Q and nln"
+    print(f'Row length is {numFields*numPoints+2} (each of Z, T, gradT, n {numPoints} points plus Q and nln)')
     print(f'Number of rows {len(x)-2*rad+1}')
     
     x_c=np.array([]) #saves coordinate of center to index result array 
@@ -69,13 +60,13 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):
             datapoint=np.append(datapoint, Z[ind:ind+2*rad:step]) #append all Zbar in xmin-xmax
             datapoint=np.append(datapoint, T[ind:ind+2*rad:step]) #append all Te in xmin-xmax
             datapoint=np.append(datapoint, gradT[ind:ind+2*rad:step]) #append all gradTe in xmin-xmax
-            datapoint=np.append(datapoint, Kn[ind:ind+2*rad:step]) #append all Knudsen number in xmin-xmax
             datapoint=np.append(datapoint, n[ind:ind+2*rad:step]) #append all gradTe in xmin-xmax
             datapoint=np.append(datapoint, Qimp[ind+rad]) #append Qimpact in x_c
             # Find the self-similar nonlinearity of temperature profile given by
             # T = c * (1 - b * x^2)^(1/nln),
             # where c stands for Tc, b for 1/xf^2 and nln = n in Zeldovich
             # Evaluate effective heat flux (logistic weighting of Qloc and Qfs) 
+            # TODO: find how to pass x0, T0, x1, T1 as input (not global as now)
             def Tselfsimilar(X, nln):
                 #x, x0, T0, x1, T1 = X
                 x = X
@@ -88,11 +79,12 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):
             Tpoints = T[ind:ind+2*rad:step].values * T_std + T_mean
             x0 = xpoints[0]; T0 = Tpoints[0]; x1 = xpoints[len(xpoints)-1]; T1 = Tpoints[len(Tpoints)-1]
             par, cov = curve_fit(Tselfsimilar, xpoints, Tpoints, maxfev = 1000)
-            plt.plot(xpoints, Tpoints, 'k-')
-            plt.plot(xpoints, Tselfsimilar(xpoints, par[0]), 'r--')
-            plt.show()
+            # Visualize the fitting capability
+            #plt.plot(xpoints, Tpoints, 'k-')
+            #plt.plot(xpoints, Tselfsimilar(xpoints, par[0]), 'r--')
+            #plt.show()
             #standev=np.sqrt(np.diag(cov))
-            print(f'xc {x[rad+ind]}, par {par}, Tavg {0.5*(T0 + T1)}')
+            #print(f'xc {x[rad+ind]}, par {par}, Tavg {0.5*(T0 + T1)}')
             datapoint=np.append(datapoint, max(0.0, min(par[0], 5./2.))) #append nonlinearity of T in x_c bounded by (0,5/2)     
             # Add datapoint
             Qdata=np.append(Qdata,[datapoint], axis=0)
@@ -102,7 +94,7 @@ def get_data(x, Z, T, gradT, Kn, n, Qimp, width, step, T_mean, T_std):
     
     #Naming of columns 
     column_names=[]
-    for _,name in enumerate(['x', 'Z', 'T', 'gradT', 'Kn', 'n']):
+    for _,name in enumerate(['x', 'Z', 'T', 'gradT', 'n']):
         for i in range(numPoints):
             column_names=np.append(column_names,f'{name}_{i}')
     column_names=np.append(column_names,['Q', 'nln'])
@@ -132,21 +124,15 @@ xref = np.linspace(xmin, xmax, Npoints)
 Te = getsub(Te, x_Te, xref)
 ne = getsub(ne, x_ne, xref)
 Zbar = getsub(Zbar, x_Zbar, xref)
-Qloc = getsub(Qloc, x_Qloc, xref)
 Qimpact = getsub(Qimpact, x_Qimpact, xref)
-Qsnb = getsub(Qsnb, x_Qsnb, xref)
-Qc7bBGK = getsub(Qc7bBGK, x_Qc7bBGK, xref)
-absKnx = -Knx
-absKnx = getsub(absKnx, x_Qc7bBGK, xref)
-Qc7bAWBS = getsub(Qc7bAWBS, x_Qc7bAWBS, xref)
 
 #calculating Te gradient
 gradTe=np.gradient(Te, xref)
 
 path = './'
 # Scale the input data
-data_scaling=pd.DataFrame(index=['mean', 'std'], columns=['Z', 'T', 'gradT', 'Kn', 'n', 'Q']) #will contain mean values and std
-scaled_data=pd.DataFrame([Zbar, Te, gradTe, absKnx, ne, Qimpact], index=['Z', 'T', 'gradT', 'Kn', 'n', 'Q']).T 
+data_scaling=pd.DataFrame(index=['mean', 'std'], columns=['Z', 'T', 'gradT', 'n', 'Q']) #will contain mean values and std
+scaled_data=pd.DataFrame([Zbar, Te, gradTe, ne, Qimpact], index=['Z', 'T', 'gradT', 'n', 'Q']).T 
 # ^^^ All data of which I want to find mean and std 
 for val in data_scaling.columns:
     data_scaling[val]['mean']=scaled_data[val].mean()
@@ -155,10 +141,9 @@ for col in scaled_data.columns:
     scaled_data[col]=(scaled_data[col]-data_scaling[col].loc['mean'])/data_scaling[col].loc['std']
 data_scaling.to_csv(f'{path}/data_scaling.csv')
 
-#Qdata=get_data(xref, Zbar, Te, gradTe, absKnx, ne, Qimpact, width, step)
-#Qdata.to_csv(f'{path}/Qdata{step}width{width:.0e}cm.csv')
 scaled_Qdata, numPoints=get_data(xref, scaled_data['Z'],  scaled_data['T'],  
-                                 scaled_data['gradT'],  scaled_data['Kn'],
-                                 scaled_data['n'],  scaled_data['Q'], width, step, 
-                                 data_scaling['T']['mean'], data_scaling['T']['std'])
+                                 scaled_data['gradT'],  scaled_data['n'],  
+                                 scaled_data['Q'], width, step, 
+                                 data_scaling['T']['mean'], 
+                                 data_scaling['T']['std'])
 scaled_Qdata.to_csv(f'{path}/scaled_QdataKn{numPoints}width{width*1e4:.0f}microns.csv')
