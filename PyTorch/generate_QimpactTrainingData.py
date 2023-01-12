@@ -92,6 +92,9 @@ def get_data(x, T, gradT, Z, n, Kn, Qimp, width, step, T_mean, T_std):
             #plt.show()
             #standev=np.sqrt(np.diag(cov))
             #print(f'xc {x[rad+ind]}, par {par}, Tavg {0.5*(T0 + T1)}')
+            # TODO: fix this
+            if (x[rad+ind]<0.15):
+                par[0] = 2.5
             datapoint=np.append(datapoint, max(0.0, min(par[0], 5./2.))) #append nonlinearity of T in x_c bounded by (0,5/2)     
             # Add datapoint
             Qdata=np.append(Qdata,[datapoint], axis=0)

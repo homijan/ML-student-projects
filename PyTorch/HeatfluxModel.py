@@ -35,7 +35,7 @@ class AlphaModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         # Evaluate physical model using data scaling
-        logits = self.scaled_heatflux_model(x)
+        logits = self.forward(x)
         # Evaluate loss comparing to the kinetic heat flux in y
         loss = self.mse_loss(logits, y)
         # Add logging
@@ -46,7 +46,7 @@ class AlphaModel(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         # Evaluate physical model using data scaling
-        logits = self.scaled_heatflux_model(x)
+        logits = self.forward(x)
         # Evaluate loss comparing to the kinetic heat flux in y
         loss = self.mse_loss(logits, y)
         return {'val_loss': loss}
@@ -61,11 +61,17 @@ class AlphaModel(pl.LightningModule):
 class DirectModel(AlphaModel): 
 
     def __init__(self, Nfeatures, N1, N2, scaling, Nfields):
-        super(DirectModel, self).__init__(Nfeatures, N1, N2, 1, scaling, Nfields)
+        super(DirectModel, self).__init__(Nfeatures, N1, N2, 2, scaling, Nfields)
 
     def scaled_heatflux_model(self, x):
-        return self.forward(x)
+        Q = self.forward(x)[:, 0]
+        return Q
 
+    def scaled_nln_model(self, x):
+        print(self.forward(x).size())
+        nln = self.forward(x)[:, 1]
+        return nln
+    
     def heatflux_model(self, x):
         mean = self.scaling['Q']['mean']
         std = self.scaling['Q']['std']
@@ -88,8 +94,7 @@ class DirectModel(AlphaModel):
         kQSH = 6.1e+02 # scaling constant consistent with SCHICK
         ### TODO
         # Workaround to get proper tensor dimensions
-        local_heatflux_model = self.forward(x)
-        local_heatflux_model[:, 0] = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
+        local_heatflux_model = - kQSH / Z[:] * ((Z[:] + 0.24) / (Z[:] + 4.2))\
           * T[:]**2.5 * gradT[:]
         ###
         return local_heatflux_model

@@ -3,7 +3,7 @@ from torch.utils.data import TensorDataset
 
 def heat_flux_datasets(scaled_Qdata, test_split, train_split, dropouts):
     # TODO: Drop nonlinearity coefficient for now
-    scaled_Qdata = scaled_Qdata.drop(['nln'], axis=1)
+    #scaled_Qdata = scaled_Qdata.drop(['nln'], axis=1)
 
     # Drop desired features
     for col in scaled_Qdata.columns:
@@ -36,7 +36,7 @@ def heat_flux_datasets(scaled_Qdata, test_split, train_split, dropouts):
     vis_set = scaled_Qdata # All data (not randomized) is kept for visualization of model
 
     # Split sets to features and targets subsets
-    target_fields = ['Q']
+    target_fields = ['Q', 'nln']
     test_features, test_targets =\
         test_set.drop(target_fields, axis=1), test_set[target_fields]
     train_features, train_targets =\
